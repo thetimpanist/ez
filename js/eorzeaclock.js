@@ -1,7 +1,53 @@
-// ▼ ------------------------- ▼ eorzeatime - エオルゼア時間（月/日/時/分）
-// ▼ ------------------------- ▼ eorzeatime2 - エオルゼア時間（月/日/時/分/秒）
-// ▼ ------------------------- ▼ eorzeatime3 - エオルゼア時間（月属性/日属性/時属性）
+var options = {
+    hour12: true
+}
 
+/**
+ * Options:
+ * hour12: boolean
+ *
+ */
+var eorzea_time = function( options ){
+    var options = typeof options == 'object' ? options : {};
+    var ratioRealToGame = 144 / 7;
+    var hour12 = options.hour12 || false;
+
+    var pub = {
+        getMilliseconds: function(){
+            return parseInt( new Date().getTime() * ratioRealToGame );
+        },
+        getHour: function(){
+            var mod = hour12 ? 12 : 24;
+            var hour = parseInt( pub.getMilliseconds() / 3600000 ) % mod;
+            return hour12 && !hour ? 12 : hour;
+                
+        },
+        getMinute: function(){
+            return parseInt( pub.getMilliseconds() / 60000 ) % 60;
+        },
+        getSecond: function(){
+            return parseInt( pub.getMilliseconds() / 1000 ) % 60;
+        },
+        getMeridiem: function(){
+            if( hour12 )
+                return parseInt( pub.getMilliseconds() / 3600000 )  % 24 >= 12 ? 'PM' : 'AM';
+            return '';
+        },
+        getTimeString: function(){
+            var minute = pub.getMinute();
+            if( minute < 10 )
+                minute = '0' + minute;
+            return pub.getHour() + ':' + minute + ' ' + pub.getMeridiem();
+        }
+    }
+    return pub;
+}( options );
+
+setInterval( function(){ console.log( eorzea_time.getTimeString() ) }, 2917 );
+
+
+
+/*
 function EorzeaTime(){
  var ratioRealToGame = (1440 / 70);
  var curTime = new Date();
@@ -191,3 +237,4 @@ function EorzeaClock(){
 document.getElementById('eorzeaclock').innerHTML = eorzea + '<span id="moontime">' + moon + '</span><span id="earthtime">' + earth + '</span><span id="levetime">' + leve + '</span></div>';
 setTimeout('EorzeaClock()',1000);
 }
+*/
