@@ -9,6 +9,21 @@ var eorzea_time = function( options ){
     var ratioRealToGame = 144 / 7;
     var hour12 = options.hour12 || false;
 
+    /**
+     * Converts time in the format hh:mm to minutes
+     * - eorzea times never need to be accurate to the second
+     *
+     * @param string
+     *
+     * @return integer
+     */
+    var convertTimeToMinutes = function( time ){
+        parts = time.split( ':' ).map( Number );
+        return parts[0] * 60 + parts[1];
+    }
+
+
+
     var pub = {
         getMilliseconds: function( date ){
             date = date || new Date();
@@ -36,6 +51,27 @@ var eorzea_time = function( options ){
             if( minute < 10 )
                 minute = '0' + minute;
             return pub.getHour( date ) + ':' + minute + ' ' + pub.getMeridiem( date );
+        },
+        
+        /** 
+         * Get the next real time that an eorzea time will occur
+         * - due to rounding issues, this function may produce dates with a margin
+         *  of error of ±1 second
+         *
+         * @param string
+         * @param date ( optional )
+         *
+         * @return Date
+         */
+        getNext: function( eorzea_time, date ){
+            date = date || new Date();
+            var target = convertTimeToMinutes( eorzea_time );
+            var now = convertTimeToMinutes( pub.getTimeString( date ) );
+            if( target < now )
+                target += hour12 ? 720 : 1440;
+            var delta = target - now;
+
+            return new Date( date.getTime() + ( delta * 60 * 1000 ) / ratioRealToGame );
         }
     }
     return pub;
@@ -78,5 +114,5 @@ var getWeather = function( strIndex ){
 }
 
 x = eorzea_time();
-date = new Date( 2015, 09, 01, 20, 0, 0 );
-console.log( x.getTimeString( date ) ) }
+console.log( x.getTimeString() );
+console.log( x.getNext( '2:00' ) );
